@@ -1,0 +1,125 @@
+{
+    "user": {
+        "mappings": [
+            {
+                "sourceVariable": "entityIdTargetSystem",
+                "targetPath": "$.id"
+            },
+            {
+                "constant": "urn:ietf:params:scim:schemas:core:2.0:User",
+                "targetPath": "$.schemas[0]"
+            },
+            {
+                "constant": "%cflp.providerId%",
+                "targetPath": "$['urn:ietf:params:scim:schemas:extension:2.0:mapping']['providerId']"
+            },
+            {
+                "condition": "$.emails[?(@.primary == true)].value == []",
+                "sourcePath": "$.emails[0].value",
+                "optional": true,
+                "targetPath": "$.emails[0].value"
+            },
+            {
+                "condition": "$.emails[?(@.primary == true)].value != []",
+                "sourcePath": "$.emails[?(@.primary == true)].value",
+                "preserveArrayWithSingleElement": true,
+                "optional": true,
+                "targetPath": "$.emails[0].value",
+                "functions": [
+                    {
+                        "function": "elementAt",
+                        "index": 0
+                    }
+                ]
+            },
+            {
+                "condition": "$.emails[0].length() > 0",
+                "constant": true,
+                "targetPath": "$.emails[0].primary"
+            },
+            {
+                "sourcePath": "$['urn:ietf:params:scim:schemas:extension:sap:2.0:User']['userUuid']",
+                "optional": true,
+                "targetPath": "$.externalId"
+            },
+            {
+                "sourcePath": "$.groups[*].value",
+                "preserveArrayWithSingleElement": true,
+                "optional": true,
+                "targetPath": "$.groups[?(@.value)]",
+                "functions": [
+                    {
+                        "function": "resolveEntityIds",
+                        "entityType": "group"
+                    }
+                ]
+            }
+        ]
+    },
+    "group": {
+        "ignore": false,
+        "mappings": [
+            {
+                "sourceVariable": "entityIdTargetSystem",
+                "targetPath": "$.id"
+            },
+            {
+                "constant": "%cflp.providerId%",
+                "targetPath": "$['urn:ietf:params:scim:schemas:extension:2.0:mapping']['providerId']"
+            },
+            {
+                "constant": "urn:ietf:params:scim:schemas:core:2.0:Group",
+                "targetPath": "$.schemas[0]"
+            },
+            {
+                "constant": "urn:ietf:params:scim:schemas:core:2.0:mapping",
+                "optional": true,
+                "targetPath": "$.schemas[1]"
+            },
+            {
+                "sourcePath": "$.displayName",
+                "optional": true,
+                "targetPath": "$.displayName"
+            },
+            {
+                "sourcePath": "$.externalId",
+                "optional": true,
+                "targetPath": "$.externalId",
+                "functions": [
+                    {
+                        "function": "replaceAllString",
+                        "regex": "(?i)(^pcd:)",
+                        "replacement": ""
+                    },
+                    {
+                        "function": "replaceString",
+                        "target": "/",
+                        "replacement": ":"
+                    },
+                    {
+                        "function": "replaceString",
+                        "target": "(",
+                        "replacement": "@"
+                    },
+                    {
+                        "function": "replaceString",
+                        "target": ")",
+                        "replacement": "+"
+                    }
+                ]
+            },
+            {
+                "sourcePath": "$.members[*].value",
+                "preserveArrayWithSingleElement": true,
+                "optional": true,
+                "targetPath": "$.members[?(@.value)]",
+                "functions": [
+                    {
+                        "function": "resolveEntityIds"
+                    }
+                ]
+            }
+        ]
+    }
+}
+ 
